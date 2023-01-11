@@ -3,7 +3,7 @@ import {useState} from 'react';
 
 function App() {
 
-  let post = "맛집"
+  let post = "아래는 map함수로 새로 만든 내용"
   // 기존 JS에선
   // document.querySelector("h4").textContent="맛집"과 같이 사용했지만
   // 리액트에선 위와같이 변수로 보관하여 {}를 사용해 가져온다
@@ -22,8 +22,10 @@ function App() {
   // 블로그 이름과 같이 변동이 자주 일어나지않는 것은
   // state를 사용할 필요가 없다.
 
-  let [like,setLike] = useState(0)
-  
+  let [like,setLike] = useState([0,0,0,0])
+
+  let [modal,setModal] = useState(false); //false true, 0 1 등 형식은 자유
+
   return (
     // return소괄호 안에서는 하나의 태그로 모두를 감싸줘야한다
     <div className="App">
@@ -42,11 +44,15 @@ function App() {
         <h4>
           {a[0]}
           <span onClick={
-            ()=>{setLike(like+1)}
+            ()=>{
+              let newLike = [...like];
+              newLike[0] += 1
+              setLike(newLike)
+            }
             // state를 변경하고싶다면 무조건 state변경함수를 써야한다.
             // 함수에는 등호를 쓰지않도록 주의
           }>👍</span>
-          {like}
+          {like[0]}
         </h4>
         <p>2월 17일</p>
         <button onClick={()=>{
@@ -83,7 +89,9 @@ function App() {
         <p>2월 17일</p>
       </div>
       <div className="list">
-        <h4>{a[2]}</h4>
+        <h4 onClick={()=>{
+          modal?setModal(false):setModal(true);
+        }}>{a[2]}</h4>
         <p>2월 17일</p>
       </div>
 
@@ -92,8 +100,69 @@ function App() {
       {/* style을 넣을때는 style=color:"red"형식이 아닌,
         style={{스타일명:"값"}}로 사용한다
       */}
+
+      {/* 
+        컴포넌트 만들기 3단계
+        1.function을 만든다.(return밖에다)
+        2.return안에 html을 담는다.
+        3.<함수명/>을 쓴다.
+      */}
+      {/* 
+        컴포넌트로 만들어야 하는것
+        1.반복적인 html을 축약할 때.
+        2.큰 페이지들.
+        3.자주 변경되는것들.
+      */}
+
+      {
+        // {}안에선 for반복문을 사용할 수 없으므로 map함수를 써준다.
+        a.map(function(내용,i){
+          return (
+            <div className="list" key={i}>
+              <h4 onClick={()=>{
+                modal?setModal(false):setModal(true);
+              }}>{내용}</h4><span onClick={()=>{
+                let newLike = [...like];
+                newLike[i+1] += 1
+                setLike(newLike)
+              }
+              }>👍</span>
+              {like[i+1]}
+              
+              <p>2월 17일</p>
+            </div>
+          )
+        })
+      }
+
+      {
+        // 동적 UI작성
+        // html의 공간이므로 if를 사용할수 없으므로 삼항연산자를 사용한다.
+        modal?<Modal/>:null
+      }
+      {/* 
+        동적 UI 만들기
+        1.html css로 디자인 완성
+        2.UI의 현재상태를 state로 저장
+        3.state에 따라 UI가 어떻게 보일지 작성
+      */}
+
+
     </div>
   );
 }
+
+function Modal(){
+  // 컴포넌트의 첫글자는 대문자로
+  return (
+    <div className='modal'>
+      <h4>제목</h4>
+      {/* {a}와 같은 변수는 다른 함수에 있으므로 이곳에서 사용할수 없다. */}
+      <p>날짜</p>
+      <p>내용</p>
+    </div>
+  )
+}
+// const Modal = () => {} 과 같이 사용해도 무관하다.
 
 export default App;
