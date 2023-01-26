@@ -1,5 +1,5 @@
 import './App.css';
-import {useState} from 'react';
+import React, {useState} from 'react';
 
 function App() {
 
@@ -17,6 +17,14 @@ function App() {
   // 유저가 수정을 할 경우, html이 자동으로 재랜더링이 되므로.
 
 
+  function changeA() {
+    let newA = [...a];
+    newA[0]="여자코트추천"
+    setA(newA);
+  }
+  // props시험용 함수
+
+
   let [logo,setLogo] = useState("리액트블로그");
   // 위와 같이 블로그이름을 바꾸는 state를 만들수도 있으나,
   // 블로그 이름과 같이 변동이 자주 일어나지않는 것은
@@ -25,6 +33,13 @@ function App() {
   let [like,setLike] = useState([0,0,0,0])
 
   let [modal,setModal] = useState(false); //false true, 0 1 등 형식은 자유
+
+  
+  let [title,setTitle] = useState(0)
+
+  let [input,setInput] = useState("")
+
+  let [date,setDate] = useState(["1월 15일","1월 9일","1월 1일"])
 
   return (
     // return소괄호 안에서는 하나의 태그로 모두를 감싸줘야한다
@@ -85,15 +100,13 @@ function App() {
       </div>
 
       <div className="list">
-        <h4>{a[1]}</h4>
-        <p>2월 17일</p>
-      </div>
-      <div className="list">
         <h4 onClick={()=>{
           modal?setModal(false):setModal(true);
         }}>{a[2]}</h4>
         <p>2월 17일</p>
       </div>
+
+      {/* ----------------아래는 map함수로 만든 것--------------- */}
 
       <h4 id={post} style={{color:"red",fontSize:"30px"}}>{post}</h4>
       {/* 위와같이 속성에도 {}로써 변수를 가져올 수 있다. */}
@@ -121,24 +134,68 @@ function App() {
             <div className="list" key={i}>
               <h4 onClick={()=>{
                 modal?setModal(false):setModal(true);
-              }}>{내용}</h4><span onClick={()=>{
-                let newLike = [...like];
-                newLike[i+1] += 1
-                setLike(newLike)
-              }
-              }>👍</span>
-              {like[i+1]}
+                setTitle(i);
+              }}>{내용}
+                <span onClick={(e)=>{
+                  e.stopPropagation();
+                  // 따봉을 눌러도 모달창이 열려버리는 등의
+                  // 상위 html요소로 퍼지는 이벤트 버블링을 막고싶을 때
+                  // 사용하는것 (stopPropagation)
+                  let newLike = [...like];
+                  newLike[i+1] += 1
+                  setLike(newLike);
+                }
+                } style={{userSelect:"none"}}>👍</span>
+                {like[i+1]}
+              </h4>
               
-              <p>2월 17일</p>
+              <p>{date[i]}</p>
+              <button onClick={()=>{
+                let newA = [...a];
+                newA.splice(i,1);
+                setA(newA);
+                let newLike = [...like];
+                newLike.splice(i,1);
+                setLike(newLike);
+                let newDate = [...date];
+                newDate.splice(i,1);
+                setDate(newDate);
+                console.log(like);
+
+              }}>글 삭제</button>
             </div>
           )
         })
       }
 
+      <input type="text" onChange={(e)=>{
+        setInput(e.target.value);
+      }} />
+      <button onClick={()=>{
+        if (input!="") {
+          let newA = [...a];
+          newA.unshift(input);
+          setA(newA);
+
+          let newLike = [...like];
+          newLike.unshift(0);
+          setLike(newLike);
+          console.log(like);
+
+          let newDate = [...date];
+          let today = new Date();
+          newDate.unshift(`${today.getMonth()+1}월 ${today.getDate()}일`);
+          setDate(newDate);
+
+        }else{alert("값입력")}
+      }}>글 추가</button>
+
       {
         // 동적 UI작성
         // html의 공간이므로 if를 사용할수 없으므로 삼항연산자를 사용한다.
-        modal?<Modal/>:null
+        modal
+        ?<Modal number={title} color={"skyblue"} send={a} function={changeA}/>
+        :null
       }
       {/* 
         동적 UI 만들기
@@ -147,22 +204,62 @@ function App() {
         3.state에 따라 UI가 어떻게 보일지 작성
       */}
 
+      {/* 
+        부모에서 자식에게로 state를 전송하는 법(props)
+        1.자식 컴포넌트 자유롭게작명한이름={state이름}
+        2.자식 컴포넌트에서 props파라미터 등록 후, props.생성한이름 사용
+        (보통은 작명할이름과 state이름을 같게 한다) 
+      */}
+
+      <Modal2/>
 
     </div>
   );
 }
 
-function Modal(){
+function Modal(props){
   // 컴포넌트의 첫글자는 대문자로
   return (
-    <div className='modal'>
-      <h4>제목</h4>
+    <div className='modal' style={{backgroundColor:props.color}}>
+      <h4>{props.send[props.number]}</h4>
       {/* {a}와 같은 변수는 다른 함수에 있으므로 이곳에서 사용할수 없다. */}
       <p>날짜</p>
       <p>내용</p>
+      <button onClick={props.function}>제목변경</button>
     </div>
   )
 }
 // const Modal = () => {} 과 같이 사용해도 무관하다.
+
+
+
+// class형식의 컴포넌트를 만들어보기
+// class를 쉽게 설명하자면 변수와 함수를 보관하는 통
+class Modal2 extends React.Component{
+  // class사용시 constructor, super, render를 필히 채워넣어야한다.
+  // 아래와 같이 props전달
+  constructor(props){
+    super(props);
+    // 변수는 아래와 같이 작성
+    this.state = {
+      name : "kim",
+      age : 20
+    }
+  }
+  render(){
+    return(
+      // render 아래에 html작성
+      <div>
+        <p>안녕하세요{this.state.name}</p>
+        <p>{this.state.age}살</p>
+        {/* state변경은 다음과 같이 */}
+        <button onClick={()=>{
+          this.setState({age:21})
+        }}>나이변경</button>
+      </div>
+      
+    )
+  }
+}
 
 export default App;
